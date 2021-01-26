@@ -111,7 +111,10 @@ class Road(Sprite):
         if self.pos_x < 9:
             if roads[self.pos_y][self.pos_x + 1]:
                 fn += 'E'
-        self.image = load_image('roads/' + self.color + '/' + fn + '.png')
+        if fn:
+            self.image = load_image('roads/' + self.color + '/' + fn + '.png')
+        else:
+            self.image = load_image('roads/' + self.color + '/' + 'notconnected.png')
 
 
 class TownBuilding():
@@ -345,6 +348,40 @@ def start_screen():
         clock.tick(FPS)
 
 
+def end_game_screen(color, description):
+    font = pygame.font.Font('data\pixel.ttf', 25)
+    fon = pygame.transform.scale(load_image('victory_screen_' + color + '.jpg'), screen_size)
+    screen.blit(fon, (0, 0))
+    if description == 'bankruptcy' and color == 'blue':
+        string = 'Красный игрок обанкротился и продал вотчину синему'
+        description_text = font.render(string, True,
+                                       (255, 255, 255))
+    elif description == 'bankruptcy' and color == 'red':
+        string = 'Синий игрок обанкротился и продал вотчину красному'
+        description_text = font.render(string, True,
+                                       (255, 255, 255))
+    elif description == 'domination' and color == 'blue':
+        string = 'Синий игрок добился полного экономического превосходства в регионе'
+        description_text = font.render(string, True,
+                                       (255, 255, 255))
+    elif description == 'domination' and color == 'red':
+        string = 'Красный игрок добился полного экономического превосходства в регионе'
+        description_text = font.render(string, True,
+                                       (255, 255, 255))
+    elif description == 'domination' and color == 'eq':
+        string = 'Красный и синий игрок сохранили одинаковые экономические показатели'
+        description_text = font.render(string, True,
+                                       (255, 255, 255))
+
+    while True:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                terminate()
+        screen.blit(description_text, description_text.get_rect(bottomright=(750, 500)))
+        pygame.display.flip()
+        clock.tick(FPS)
+
+
 def load_level():
     level_name = 'map.txt'
     filename = level_name
@@ -453,6 +490,24 @@ def build():
                     move(cursor, "right")
             elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
                 building_impossible = False
+                enemy_castle = False
+                d = False
+                for i in range(10):
+                    for j in range(10):
+                        if buildings[i][j] and buildings_colors[i][j] == turns[0][0]:
+                            if (isinstance(buildings[i][j], CastleBuilding) or isinstance(buildings[i][j],
+                                                                                          TownBuilding)) and abs(
+                                i - cursor.pos[1]) <= 1 and abs(
+                                j - cursor.pos[0]) <= 1:
+                                if (cursor.pos[0] == 0 and j == 9) or (cursor.pos[0] == 9 and j == 0) or (
+                                        cursor.pos[1] == 0 and i == 9) or (cursor.pos[1] == 9 and i == 0):
+                                    pass
+                                else:
+                                    enemy_castle = True
+                            d = True
+                            break
+                    if d:
+                        break
                 treasury = red_treasury if turns[0] == 'blue' else blue_treasury
                 if road_button_rect.collidepoint(pygame.mouse.get_pos()):
                     connected = False
@@ -463,7 +518,7 @@ def build():
                                 if roads[i][j].color == turns[1]:
                                     connected = True
 
-                    if roads[cursor.pos[1]][cursor.pos[0]] or cursor.pos[1] == cursor.pos[0] \
+                    if enemy_castle or roads[cursor.pos[1]][cursor.pos[0]] or cursor.pos[1] == cursor.pos[0] \
                             or treasury.current_money - road_cost < -500 or not connected:
                         building_impossible = True
                     else:
@@ -476,7 +531,7 @@ def build():
                             if turns[0] == 'blue' else font.render(str(round(blue_treasury.current_money, 2)), True,
                                                                    (0, 0, 0))
                 if castle_button_rect.collidepoint(pygame.mouse.get_pos()):
-                    if not roads[cursor.pos[1]][cursor.pos[0]] or cursor.pos[1] == cursor.pos[0] \
+                    if enemy_castle or not roads[cursor.pos[1]][cursor.pos[0]] or cursor.pos[1] == cursor.pos[0] \
                             or treasury.current_money - castle_cost < -500 or buildings[cursor.pos[1]][cursor.pos[0]] \
                             or roads[cursor.pos[1]][cursor.pos[0]].color != turns[1]:
                         building_impossible = True
@@ -493,7 +548,7 @@ def build():
                                                                    (0, 0, 0))
                         buildings_colors[cursor.pos[1]][cursor.pos[0]] = turns[1][0]
                 if manor_button_rect.collidepoint(pygame.mouse.get_pos()):
-                    if not roads[cursor.pos[1]][cursor.pos[0]] or cursor.pos[1] == cursor.pos[0] \
+                    if enemy_castle or not roads[cursor.pos[1]][cursor.pos[0]] or cursor.pos[1] == cursor.pos[0] \
                             or treasury.current_money - manor_cost < -500 or buildings[cursor.pos[1]][cursor.pos[0]] \
                             or roads[cursor.pos[1]][cursor.pos[0]].color != turns[1]:
                         building_impossible = True
@@ -510,7 +565,7 @@ def build():
                                                                    (0, 0, 0))
                         buildings_colors[cursor.pos[1]][cursor.pos[0]] = turns[1][0]
                 if church_button_rect.collidepoint(pygame.mouse.get_pos()):
-                    if not roads[cursor.pos[1]][cursor.pos[0]] or cursor.pos[1] == cursor.pos[0] \
+                    if enemy_castle or not roads[cursor.pos[1]][cursor.pos[0]] or cursor.pos[1] == cursor.pos[0] \
                             or treasury.current_money - church_cost < -500 or buildings[cursor.pos[1]][cursor.pos[0]] \
                             or roads[cursor.pos[1]][cursor.pos[0]].color != turns[1]:
                         building_impossible = True
@@ -527,7 +582,7 @@ def build():
                                                                    (0, 0, 0))
                         buildings_colors[cursor.pos[1]][cursor.pos[0]] = turns[1][0]
                 if arable_button_rect.collidepoint(pygame.mouse.get_pos()):
-                    if roads[cursor.pos[1]][cursor.pos[0]] or cursor.pos[1] == cursor.pos[0] \
+                    if enemy_castle or roads[cursor.pos[1]][cursor.pos[0]] or cursor.pos[1] == cursor.pos[0] \
                             or treasury.current_money - arable_cost < -500 or buildings[cursor.pos[1]][cursor.pos[0]]:
                         building_impossible = True
                     else:
@@ -810,7 +865,7 @@ for i in range(10):
                                        p_fish)
 
             if isinstance(buildings[i][j], CastleBuilding):
-                red_defence += 50
+                red_defence += 150
 
 
         elif buildings[i][j] and buildings_colors[i][j] == 'b' \
@@ -831,7 +886,7 @@ for i in range(10):
                                         p_fish)
 
             if isinstance(buildings[i][j], CastleBuilding):
-                blue_defence += 50
+                blue_defence += 150
     blue_handicrafts_deficit = max(0, (blue_trade.handicrafts_required - blue_production.handicrafts_produced)) \
                                * blue_trade.handicrafts
     blue_rural_deficit = max(0, (blue_trade.rural_required - blue_production.rural_produced)) \
@@ -840,11 +895,11 @@ for i in range(10):
                         * blue_trade.fish
 
     blue_handicrafts_deficit = max(0, (blue_trade.handicrafts_required - blue_production.handicrafts_produced)) \
-                              * blue_trade.handicrafts
+                               * blue_trade.handicrafts
     blue_rural_deficit = max(0, (blue_trade.rural_required - blue_production.rural_produced)) \
-                        * blue_trade.rural
+                         * blue_trade.rural
     blue_fish_deficit = max(0, (blue_trade.fish_required - blue_production.fish_produced)) \
-                       * blue_trade.fish
+                        * blue_trade.fish
     blue_deficit = sum((blue_handicrafts_deficit, blue_rural_deficit, blue_fish_deficit))
     blue_deficit = sum((blue_handicrafts_deficit, blue_rural_deficit, blue_fish_deficit))
     blue_treasury.costs_update(0, blue_defence, blue_deficit)
@@ -896,13 +951,6 @@ while True:
                             red_trade.handicrafts_required += 5
                             red_trade.rural_required += 50
                             red_trade.fish_required += 2
-                    if red_trade.turn % 3 == 0:
-                        for i in range(10):
-                            for j in range(10):
-                                if buildings[i][j] and buildings_colors[i][j] == 'r':
-                                    buildings_armies[i][j] += 1
-                                    if isinstance(buildings[i][j], CastleBuilding):
-                                        buildings_armies[i][j] += 1
                 else:
                     blue_trade.turn += 1
                     if blue_trade.turn % 8 == 0 and blue_trade.turn >= 8 and blue_trade.turn <= 40:
@@ -910,13 +958,18 @@ while True:
                             blue_trade.handicrafts_required += 5
                             blue_trade.rural_required += 50
                             blue_trade.fish_required += 2
-                    if blue_trade.turn % 3 == 0:
-                        for i in range(10):
-                            for j in range(10):
-                                if buildings[i][j] and buildings_colors[i][j] == 'b':
-                                    buildings_armies[i][j] += 1
-                                    if isinstance(buildings[i][j], CastleBuilding):
-                                        buildings_armies[i][j] += 1
+                        if blue_trade.turn == 41:
+                            if blue_treasury.profit > red_treasury.profit:
+                                end_game_screen('blue',
+                                                'economy_domination')
+                            elif blue_treasury.profit < red_treasury.profit:
+                                end_game_screen('red', 'economy_domination')
+                            elif blue_treasury.profit == red_treasury.profit:
+                                end_game_screen('eq', 'economy_domination')
+                    if blue_treasury.current_money <= -20000:
+                        end_game_screen('red', 'bankruptcy')
+                    if red_treasury.current_money <= -20000:
+                        end_game_screen('blue', 'bankruptcy')
 
                 red_production.handicrafts_produced = 0
                 red_production.rural_produced = 0
@@ -928,6 +981,10 @@ while True:
                 blue_treasury.income_update(-blue_treasury.income)
                 red_defence = 0
                 blue_defence = 0
+                for i in range(10):
+                    for j in range(10):
+                        if isinstance(buildings[i][j], ManorBuilding):
+                            buildings[i][j].rural = 0
                 for i in range(10):
                     for j in range(10):
                         if buildings[i][j] and buildings_colors[i][j] == 'r' \
@@ -948,7 +1005,7 @@ while True:
                                 for j2 in range(10):
                                     if isinstance(buildings[i2][j2], ManorBuilding) \
                                             and abs(i2 - i) <= 1 and abs(j2 - j) <= 1:
-                                        buildings[i2][j2].rural = rural_to_manor
+                                        buildings[i2][j2].rural += rural_to_manor
                                         d = True
                                         break
                                 if d:
@@ -971,7 +1028,7 @@ while True:
                                 for j2 in range(10):
                                     if isinstance(buildings[i2][j2], ManorBuilding) \
                                             and abs(i2 - i) <= 1 and abs(j2 - j) <= 1:
-                                        buildings[i2][j2].rural = rural_to_manor
+                                        buildings[i2][j2].rural += rural_to_manor
                                         d = True
                                         break
                                 if d:
@@ -1009,7 +1066,7 @@ while True:
                                                        p_fish)
 
                             if isinstance(buildings[i][j], CastleBuilding):
-                                red_defence += 50
+                                red_defence += 150
 
                         elif buildings[i][j] and buildings_colors[i][j] == 'b' \
                                 and not isinstance(buildings[i][j], ArableBuilding):
@@ -1028,7 +1085,7 @@ while True:
                                                         p_rural +
                                                         p_fish)
                             if isinstance(buildings[i][j], CastleBuilding):
-                                blue_defence += 50
+                                blue_defence += 150
                 blue_handicrafts_deficit = max(0,
                                                (blue_trade.handicrafts_required -
                                                 blue_production.handicrafts_produced)) \

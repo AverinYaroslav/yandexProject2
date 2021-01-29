@@ -293,7 +293,7 @@ class FishingGrounds(Sprite):
 class Treasury():
     def __init__(self, color):
         self.color = color
-        self.current_money = 6000.0
+        self.current_money = 6000
         self.income = 0
         self.costs = 0
         self.military = 0
@@ -377,7 +377,7 @@ def end_game_screen(color, description):
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 terminate()
-        screen.blit(description_text, description_text.get_rect(bottomright=(750, 500)))
+        screen.blit(description_text, description_text.get_rect(bottomright=(775, 500)))
         pygame.display.flip()
         clock.tick(FPS)
 
@@ -958,14 +958,14 @@ while True:
                             blue_trade.handicrafts_required += 5
                             blue_trade.rural_required += 50
                             blue_trade.fish_required += 2
-                        if blue_trade.turn == 41:
-                            if blue_treasury.profit > red_treasury.profit:
-                                end_game_screen('blue',
-                                                'economy_domination')
-                            elif blue_treasury.profit < red_treasury.profit:
-                                end_game_screen('red', 'economy_domination')
-                            elif blue_treasury.profit == red_treasury.profit:
-                                end_game_screen('eq', 'economy_domination')
+                    if blue_trade.turn == 41:
+                        if blue_treasury.income > red_treasury.income:
+                            end_game_screen('blue',
+                                            'domination')
+                        elif blue_treasury.income < red_treasury.income:
+                            end_game_screen('red', 'domination')
+                        elif blue_treasury.income == red_treasury.income:
+                            end_game_screen('eq', 'domination')
                     if blue_treasury.current_money <= -20000:
                         end_game_screen('red', 'bankruptcy')
                     if red_treasury.current_money <= -20000:

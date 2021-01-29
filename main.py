@@ -331,21 +331,24 @@ def terminate():
 
 
 def start_screen():
-    fon = pygame.transform.scale(load_image('fon.jpg'), screen_size)
-    screen.blit(fon, (0, 0))
+    try:
+        fon = pygame.transform.scale(load_image('fon.jpg'), screen_size)
+        screen.blit(fon, (0, 0))
 
-    new_game_button = load_image('newGameBtn.png')
-    new_game_button_rect = new_game_button.get_rect(bottomleft=(35, 424))
-    while True:
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                terminate()
-            elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
-                if new_game_button_rect.collidepoint(pygame.mouse.get_pos()):
-                    return
-        screen.blit(new_game_button, new_game_button_rect)
-        pygame.display.flip()
-        clock.tick(FPS)
+        new_game_button = load_image('newGameBtn.png')
+        new_game_button_rect = new_game_button.get_rect(bottomleft=(35, 424))
+        while True:
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    terminate()
+                elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+                    if new_game_button_rect.collidepoint(pygame.mouse.get_pos()):
+                        return
+            screen.blit(new_game_button, new_game_button_rect)
+            pygame.display.flip()
+            clock.tick(FPS)
+    except Exception:
+        pass
 
 
 def end_game_screen(color, description):
@@ -926,287 +929,289 @@ fish_deficit_text = font3.render \
 screen.blit(treasury_text, treasury_text.get_rect(bottomright=(750, 60)))
 screen.blit(income_text, income_text.get_rect(bottomright=(750, 265)))
 screen.blit(defence_text, income_text.get_rect(bottomright=(750, 530)))
+try:
+    while True:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                terminate()
+            elif event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_UP:
+                    move(cursor, "up")
+                elif event.key == pygame.K_DOWN:
+                    move(cursor, "down")
+                elif event.key == pygame.K_LEFT:
+                    move(cursor, "left")
+                elif event.key == pygame.K_RIGHT:
+                    move(cursor, "right")
+            elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+                if end_turn_button_rect.collidepoint(pygame.mouse.get_pos()):
+                    cursor.kill()
+                    cursor = red_generation() if turns[0] == 'red' else blue_generation()
+                    if turns[0] == 'red':
+                        red_trade.turn += 1
+                        if red_trade.turn % 8 == 0 and red_trade.turn >= 8 and red_trade.turn <= 40:
+                            if red_trade.turn != 0:
+                                red_trade.handicrafts_required += 5
+                                red_trade.rural_required += 50
+                                red_trade.fish_required += 2
+                    else:
+                        blue_trade.turn += 1
+                        if blue_trade.turn % 8 == 0 and blue_trade.turn >= 8 and blue_trade.turn <= 40:
+                            if blue_trade.turn != 0:
+                                blue_trade.handicrafts_required += 5
+                                blue_trade.rural_required += 50
+                                blue_trade.fish_required += 2
+                        if blue_trade.turn == 41:
+                            if blue_treasury.income > red_treasury.income:
+                                end_game_screen('blue',
+                                                'domination')
+                            elif blue_treasury.income < red_treasury.income:
+                                end_game_screen('red', 'domination')
+                            elif blue_treasury.income == red_treasury.income:
+                                end_game_screen('eq', 'domination')
+                        if blue_treasury.current_money <= -20000:
+                            end_game_screen('red', 'bankruptcy')
+                        if red_treasury.current_money <= -20000:
+                            end_game_screen('blue', 'bankruptcy')
 
-while True:
-    for event in pygame.event.get():
-        if event.type == pygame.QUIT:
-            terminate()
-        elif event.type == pygame.KEYDOWN:
-            if event.key == pygame.K_UP:
-                move(cursor, "up")
-            elif event.key == pygame.K_DOWN:
-                move(cursor, "down")
-            elif event.key == pygame.K_LEFT:
-                move(cursor, "left")
-            elif event.key == pygame.K_RIGHT:
-                move(cursor, "right")
-        elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
-            if end_turn_button_rect.collidepoint(pygame.mouse.get_pos()):
-                cursor.kill()
-                cursor = red_generation() if turns[0] == 'red' else blue_generation()
-                if turns[0] == 'red':
-                    red_trade.turn += 1
-                    if red_trade.turn % 8 == 0 and red_trade.turn >= 8 and red_trade.turn <= 40:
-                        if red_trade.turn != 0:
-                            red_trade.handicrafts_required += 5
-                            red_trade.rural_required += 50
-                            red_trade.fish_required += 2
-                else:
-                    blue_trade.turn += 1
-                    if blue_trade.turn % 8 == 0 and blue_trade.turn >= 8 and blue_trade.turn <= 40:
-                        if blue_trade.turn != 0:
-                            blue_trade.handicrafts_required += 5
-                            blue_trade.rural_required += 50
-                            blue_trade.fish_required += 2
-                    if blue_trade.turn == 41:
-                        if blue_treasury.income > red_treasury.income:
-                            end_game_screen('blue',
-                                            'domination')
-                        elif blue_treasury.income < red_treasury.income:
-                            end_game_screen('red', 'domination')
-                        elif blue_treasury.income == red_treasury.income:
-                            end_game_screen('eq', 'domination')
-                    if blue_treasury.current_money <= -20000:
-                        end_game_screen('red', 'bankruptcy')
-                    if red_treasury.current_money <= -20000:
-                        end_game_screen('blue', 'bankruptcy')
-
-                red_production.handicrafts_produced = 0
-                red_production.rural_produced = 0
-                red_production.fish_produced = 0
-                blue_production.handicrafts_produced = 0
-                blue_production.rural_produced = 0
-                blue_production.fish_produced = 0
-                red_treasury.income_update(-red_treasury.income)
-                blue_treasury.income_update(-blue_treasury.income)
-                red_defence = 0
-                blue_defence = 0
-                for i in range(10):
-                    for j in range(10):
-                        if isinstance(buildings[i][j], ManorBuilding):
-                            buildings[i][j].rural = 0
-                for i in range(10):
-                    for j in range(10):
-                        if buildings[i][j] and buildings_colors[i][j] == 'r' \
-                                and isinstance(buildings[i][j], ArableBuilding):
-                            rural_to_manor = buildings[i][j].rural
-                            d = False
-                            for i2 in range(10):
-                                for j2 in range(10):
-                                    if isinstance(buildings[i2][j2], ChurchBuilding) \
-                                            and abs(i2 - i) <= 1 and abs(j2 - j) <= 1:
-                                        rural_to_manor *= 1.5
-                                        d = True
+                    red_production.handicrafts_produced = 0
+                    red_production.rural_produced = 0
+                    red_production.fish_produced = 0
+                    blue_production.handicrafts_produced = 0
+                    blue_production.rural_produced = 0
+                    blue_production.fish_produced = 0
+                    red_treasury.income_update(-red_treasury.income)
+                    blue_treasury.income_update(-blue_treasury.income)
+                    red_defence = 0
+                    blue_defence = 0
+                    for i in range(10):
+                        for j in range(10):
+                            if isinstance(buildings[i][j], ManorBuilding):
+                                buildings[i][j].rural = 0
+                    for i in range(10):
+                        for j in range(10):
+                            if buildings[i][j] and buildings_colors[i][j] == 'r' \
+                                    and isinstance(buildings[i][j], ArableBuilding):
+                                rural_to_manor = buildings[i][j].rural
+                                d = False
+                                for i2 in range(10):
+                                    for j2 in range(10):
+                                        if isinstance(buildings[i2][j2], ChurchBuilding) \
+                                                and abs(i2 - i) <= 1 and abs(j2 - j) <= 1:
+                                            rural_to_manor *= 1.5
+                                            d = True
+                                            break
+                                    if d:
                                         break
-                                if d:
-                                    break
-                            d = False
-                            for i2 in range(10):
-                                for j2 in range(10):
-                                    if isinstance(buildings[i2][j2], ManorBuilding) \
-                                            and abs(i2 - i) <= 1 and abs(j2 - j) <= 1:
-                                        buildings[i2][j2].rural += rural_to_manor
-                                        d = True
+                                d = False
+                                for i2 in range(10):
+                                    for j2 in range(10):
+                                        if isinstance(buildings[i2][j2], ManorBuilding) \
+                                                and abs(i2 - i) <= 1 and abs(j2 - j) <= 1:
+                                            buildings[i2][j2].rural += rural_to_manor
+                                            d = True
+                                            break
+                                    if d:
                                         break
-                                if d:
-                                    break
-                        elif buildings[i][j] and buildings_colors[i][j] == 'b' \
-                                and isinstance(buildings[i][j], ArableBuilding):
-                            rural_to_manor = buildings[i][j].rural
-                            d = False
-                            for i2 in range(10):
-                                for j2 in range(10):
-                                    if isinstance(buildings[i2][j2], ChurchBuilding) \
-                                            and abs(i2 - i) <= 1 and abs(j2 - j) <= 1:
-                                        rural_to_manor *= 1.5
-                                        d = True
+                            elif buildings[i][j] and buildings_colors[i][j] == 'b' \
+                                    and isinstance(buildings[i][j], ArableBuilding):
+                                rural_to_manor = buildings[i][j].rural
+                                d = False
+                                for i2 in range(10):
+                                    for j2 in range(10):
+                                        if isinstance(buildings[i2][j2], ChurchBuilding) \
+                                                and abs(i2 - i) <= 1 and abs(j2 - j) <= 1:
+                                            rural_to_manor *= 1.5
+                                            d = True
+                                            break
+                                    if d:
                                         break
-                                if d:
-                                    break
-                            d = False
-                            for i2 in range(10):
-                                for j2 in range(10):
-                                    if isinstance(buildings[i2][j2], ManorBuilding) \
-                                            and abs(i2 - i) <= 1 and abs(j2 - j) <= 1:
-                                        buildings[i2][j2].rural += rural_to_manor
-                                        d = True
+                                d = False
+                                for i2 in range(10):
+                                    for j2 in range(10):
+                                        if isinstance(buildings[i2][j2], ManorBuilding) \
+                                                and abs(i2 - i) <= 1 and abs(j2 - j) <= 1:
+                                            buildings[i2][j2].rural += rural_to_manor
+                                            d = True
+                                            break
+                                    if d:
                                         break
-                                if d:
-                                    break
 
-                for i in range(10):
-                    for j in range(10):
-                        if buildings[i][j] and buildings_colors[i][j] == 'r' \
-                                and not isinstance(buildings[i][j], ArableBuilding):
-                            red_production.update(buildings[i][j].handicrafts, buildings[i][j].rural,
-                                                  buildings[i][j].fish)
-                            red_trade.update()
-                        elif buildings[i][j] and buildings_colors[i][j] == 'b' \
-                                and not isinstance(buildings[i][j], ArableBuilding):
-                            blue_production.update(buildings[i][j].handicrafts, buildings[i][j].rural,
-                                                   buildings[i][j].fish)
-                            blue_trade.update()
+                    for i in range(10):
+                        for j in range(10):
+                            if buildings[i][j] and buildings_colors[i][j] == 'r' \
+                                    and not isinstance(buildings[i][j], ArableBuilding):
+                                red_production.update(buildings[i][j].handicrafts, buildings[i][j].rural,
+                                                      buildings[i][j].fish)
+                                red_trade.update()
+                            elif buildings[i][j] and buildings_colors[i][j] == 'b' \
+                                    and not isinstance(buildings[i][j], ArableBuilding):
+                                blue_production.update(buildings[i][j].handicrafts, buildings[i][j].rural,
+                                                       buildings[i][j].fish)
+                                blue_trade.update()
 
-                for i in range(10):
-                    for j in range(10):
-                        if buildings[i][j] and buildings_colors[i][j] == 'r' \
-                                and not isinstance(buildings[i][j], ArableBuilding):
-                            p_handicrafts = buildings[i][j].handicrafts * red_trade.handicrafts
-                            p_rural = buildings[i][j].rural * red_trade.rural
-                            p_fish = buildings[i][j].fish * red_trade.fish
-                            way = red_trade.transport((j, i))
-                            if way:
-                                for k in range(way):
-                                    p_handicrafts *= 1.18
-                                    p_rural *= 1.18
-                                    p_fish *= 1.18
+                    for i in range(10):
+                        for j in range(10):
+                            if buildings[i][j] and buildings_colors[i][j] == 'r' \
+                                    and not isinstance(buildings[i][j], ArableBuilding):
+                                p_handicrafts = buildings[i][j].handicrafts * red_trade.handicrafts
+                                p_rural = buildings[i][j].rural * red_trade.rural
+                                p_fish = buildings[i][j].fish * red_trade.fish
+                                way = red_trade.transport((j, i))
+                                if way:
+                                    for k in range(way):
+                                        p_handicrafts *= 1.18
+                                        p_rural *= 1.18
+                                        p_fish *= 1.18
 
-                            red_treasury.income_update(p_handicrafts +
-                                                       p_rural +
-                                                       p_fish)
+                                red_treasury.income_update(p_handicrafts +
+                                                           p_rural +
+                                                           p_fish)
 
-                            if isinstance(buildings[i][j], CastleBuilding):
-                                red_defence += 150
+                                if isinstance(buildings[i][j], CastleBuilding):
+                                    red_defence += 150
 
-                        elif buildings[i][j] and buildings_colors[i][j] == 'b' \
-                                and not isinstance(buildings[i][j], ArableBuilding):
-                            p_handicrafts = buildings[i][j].handicrafts * blue_trade.handicrafts
-                            p_rural = buildings[i][j].rural * blue_trade.rural
-                            p_fish = buildings[i][j].fish * blue_trade.fish
+                            elif buildings[i][j] and buildings_colors[i][j] == 'b' \
+                                    and not isinstance(buildings[i][j], ArableBuilding):
+                                p_handicrafts = buildings[i][j].handicrafts * blue_trade.handicrafts
+                                p_rural = buildings[i][j].rural * blue_trade.rural
+                                p_fish = buildings[i][j].fish * blue_trade.fish
 
-                            way = blue_trade.transport((j, i))
-                            if way:
-                                for k in range(way):
-                                    p_handicrafts *= 1.18
-                                    p_rural *= 1.18
-                                    p_fish *= 1.18
+                                way = blue_trade.transport((j, i))
+                                if way:
+                                    for k in range(way):
+                                        p_handicrafts *= 1.18
+                                        p_rural *= 1.18
+                                        p_fish *= 1.18
 
-                            blue_treasury.income_update(p_handicrafts +
-                                                        p_rural +
-                                                        p_fish)
-                            if isinstance(buildings[i][j], CastleBuilding):
-                                blue_defence += 150
-                blue_handicrafts_deficit = max(0,
-                                               (blue_trade.handicrafts_required -
-                                                blue_production.handicrafts_produced)) \
-                                           * blue_trade.handicrafts
-                blue_rural_deficit = max(0, (blue_trade.rural_required - blue_production.rural_produced)) \
-                                     * blue_trade.rural
-                blue_fish_deficit = max(0, (blue_trade.fish_required - blue_production.fish_produced)) \
-                                    * blue_trade.fish
+                                blue_treasury.income_update(p_handicrafts +
+                                                            p_rural +
+                                                            p_fish)
+                                if isinstance(buildings[i][j], CastleBuilding):
+                                    blue_defence += 150
+                    blue_handicrafts_deficit = max(0,
+                                                   (blue_trade.handicrafts_required -
+                                                    blue_production.handicrafts_produced)) \
+                                               * blue_trade.handicrafts
+                    blue_rural_deficit = max(0, (blue_trade.rural_required - blue_production.rural_produced)) \
+                                         * blue_trade.rural
+                    blue_fish_deficit = max(0, (blue_trade.fish_required - blue_production.fish_produced)) \
+                                        * blue_trade.fish
 
-                red_handicrafts_deficit = max(0, (red_trade.handicrafts_required - red_production.handicrafts_produced)) \
-                                          * red_trade.handicrafts
-                red_rural_deficit = max(0, (red_trade.rural_required - red_production.rural_produced)) \
-                                    * red_trade.rural
-                red_fish_deficit = max(0, (red_trade.fish_required - red_production.fish_produced)) \
-                                   * red_trade.fish
-                blue_deficit = sum((blue_handicrafts_deficit, blue_rural_deficit, blue_fish_deficit))
-                red_deficit = sum((red_handicrafts_deficit, red_rural_deficit, red_fish_deficit))
-                blue_treasury.costs_update(0, blue_defence, blue_deficit)
-                red_treasury.costs_update(0, red_defence, red_deficit)
-                if turns[0] == 'red':
-                    blue_treasury.current_money_update()
-                    if blue_treasury.loan > 0:
-                        blue_treasury.loan -= 300
-                    treasury_text = font.render(str(round(red_treasury.current_money, 2)), True, (0, 0, 0))
-                    income_text = font.render(str(round(red_treasury.income, 2)), True, (0, 0, 0))
-                    costs_text = font.render(str(round(red_treasury.costs, 2)), True, (0, 0, 0))
-                    profit_text = font.render(str(round(red_treasury.income - red_treasury.costs, 2)),
-                                              True, (0, 0, 0))
-                    deficit_text = font2.render(str(round(red_treasury.deficit, 2)), True, (0, 0, 0))
-                    military_text = font2.render(str(round(red_treasury.military, 2)), True, (0, 0, 0))
-                    diplomacy_text = font2.render(str(round(red_treasury.diplomacy, 2)), True, (0, 0, 0))
-                    defence_text = font2.render(str(round(red_treasury.defence, 2)), True, (0, 0, 0))
-                    handicrafts_deficit_text = font3.render \
-                        (str(round(red_production.handicrafts_produced, 2)) +
-                         '/' + str(round(red_trade.handicrafts_required, 2)), True, (0, 0, 0))
-                    rural_deficit_text = font3.render \
-                        (str(round(red_production.rural_produced, 2)) +
-                         '/' + str(round(red_trade.rural_required, 2)), True, (0, 0, 0))
-                    fish_deficit_text = font3.render \
-                        (str(round(red_production.fish_produced, 2)) +
-                         '/' + str(round(red_trade.fish_required, 2)), True, (0, 0, 0))
+                    red_handicrafts_deficit = max(0, (red_trade.handicrafts_required - red_production.handicrafts_produced)) \
+                                              * red_trade.handicrafts
+                    red_rural_deficit = max(0, (red_trade.rural_required - red_production.rural_produced)) \
+                                        * red_trade.rural
+                    red_fish_deficit = max(0, (red_trade.fish_required - red_production.fish_produced)) \
+                                       * red_trade.fish
+                    blue_deficit = sum((blue_handicrafts_deficit, blue_rural_deficit, blue_fish_deficit))
+                    red_deficit = sum((red_handicrafts_deficit, red_rural_deficit, red_fish_deficit))
+                    blue_treasury.costs_update(0, blue_defence, blue_deficit)
+                    red_treasury.costs_update(0, red_defence, red_deficit)
+                    if turns[0] == 'red':
+                        blue_treasury.current_money_update()
+                        if blue_treasury.loan > 0:
+                            blue_treasury.loan -= 300
+                        treasury_text = font.render(str(round(red_treasury.current_money, 2)), True, (0, 0, 0))
+                        income_text = font.render(str(round(red_treasury.income, 2)), True, (0, 0, 0))
+                        costs_text = font.render(str(round(red_treasury.costs, 2)), True, (0, 0, 0))
+                        profit_text = font.render(str(round(red_treasury.income - red_treasury.costs, 2)),
+                                                  True, (0, 0, 0))
+                        deficit_text = font2.render(str(round(red_treasury.deficit, 2)), True, (0, 0, 0))
+                        military_text = font2.render(str(round(red_treasury.military, 2)), True, (0, 0, 0))
+                        diplomacy_text = font2.render(str(round(red_treasury.diplomacy, 2)), True, (0, 0, 0))
+                        defence_text = font2.render(str(round(red_treasury.defence, 2)), True, (0, 0, 0))
+                        handicrafts_deficit_text = font3.render \
+                            (str(round(red_production.handicrafts_produced, 2)) +
+                             '/' + str(round(red_trade.handicrafts_required, 2)), True, (0, 0, 0))
+                        rural_deficit_text = font3.render \
+                            (str(round(red_production.rural_produced, 2)) +
+                             '/' + str(round(red_trade.rural_required, 2)), True, (0, 0, 0))
+                        fish_deficit_text = font3.render \
+                            (str(round(red_production.fish_produced, 2)) +
+                             '/' + str(round(red_trade.fish_required, 2)), True, (0, 0, 0))
 
 
-                else:
-                    red_treasury.current_money_update()
-                    if red_treasury.loan > 0:
-                        red_treasury.loan -= 300
-                    treasury_text = font.render(str(round(blue_treasury.current_money, 2)), True, (0, 0, 0))
-                    income_text = font.render(str(round(blue_treasury.income, 2)), True, (0, 0, 0))
-                    costs_text = font.render(str(round(blue_treasury.costs, 2)), True, (0, 0, 0))
-                    profit_text = font.render(str(round(blue_treasury.income - blue_treasury.costs, 2)),
-                                              True, (0, 0, 0))
-                    deficit_text = font2.render(str(round(blue_treasury.deficit, 2)), True, (0, 0, 0))
-                    military_text = font2.render(str(round(blue_treasury.military, 2)), True, (0, 0, 0))
-                    diplomacy_text = font2.render(str(round(blue_treasury.diplomacy, 2)), True, (0, 0, 0))
-                    defence_text = font2.render(str(round(blue_treasury.defence, 2)), True, (0, 0, 0))
-                    handicrafts_deficit_text = font3.render \
-                        (str(round(blue_production.handicrafts_produced, 2)) +
-                         '/' + str(round(blue_trade.handicrafts_required, 2)), True, (0, 0, 0))
-                    rural_deficit_text = font3.render \
-                        (str(round(blue_production.rural_produced, 2)) +
-                         '/' + str(round(blue_trade.rural_required, 2)), True, (0, 0, 0))
-                    fish_deficit_text = font3.render \
-                        (str(round(blue_production.fish_produced, 2)) +
-                         '/' + str(round(blue_trade.fish_required, 2)), True, (0, 0, 0))
-                turns = turns[::-1]
-                screen.blit(treasury_text, treasury_text.get_rect(bottomright=(750, 60)))
-                screen.blit(income_text, income_text.get_rect(bottomright=(750, 265)))
-            if build_button_rect.collidepoint((pygame.mouse.get_pos())):
-                build()
-
-            if turns[1] == 'blue':
-                if loan_button_rect.collidepoint((pygame.mouse.get_pos())) and not blue_treasury.loan:
-                    blue_treasury.loan = 3900
-                    blue_treasury.current_money += 3000
-
-                    treasury_text = font.render(str(round(blue_treasury.current_money, 2)), True, (0, 0, 0))
-                    interest_text = font2.render(str(300), True, (0, 0, 0))
+                    else:
+                        red_treasury.current_money_update()
+                        if red_treasury.loan > 0:
+                            red_treasury.loan -= 300
+                        treasury_text = font.render(str(round(blue_treasury.current_money, 2)), True, (0, 0, 0))
+                        income_text = font.render(str(round(blue_treasury.income, 2)), True, (0, 0, 0))
+                        costs_text = font.render(str(round(blue_treasury.costs, 2)), True, (0, 0, 0))
+                        profit_text = font.render(str(round(blue_treasury.income - blue_treasury.costs, 2)),
+                                                  True, (0, 0, 0))
+                        deficit_text = font2.render(str(round(blue_treasury.deficit, 2)), True, (0, 0, 0))
+                        military_text = font2.render(str(round(blue_treasury.military, 2)), True, (0, 0, 0))
+                        diplomacy_text = font2.render(str(round(blue_treasury.diplomacy, 2)), True, (0, 0, 0))
+                        defence_text = font2.render(str(round(blue_treasury.defence, 2)), True, (0, 0, 0))
+                        handicrafts_deficit_text = font3.render \
+                            (str(round(blue_production.handicrafts_produced, 2)) +
+                             '/' + str(round(blue_trade.handicrafts_required, 2)), True, (0, 0, 0))
+                        rural_deficit_text = font3.render \
+                            (str(round(blue_production.rural_produced, 2)) +
+                             '/' + str(round(blue_trade.rural_required, 2)), True, (0, 0, 0))
+                        fish_deficit_text = font3.render \
+                            (str(round(blue_production.fish_produced, 2)) +
+                             '/' + str(round(blue_trade.fish_required, 2)), True, (0, 0, 0))
+                    turns = turns[::-1]
                     screen.blit(treasury_text, treasury_text.get_rect(bottomright=(750, 60)))
-            elif turns[1] == 'red':
-                if loan_button_rect.collidepoint((pygame.mouse.get_pos())) and not red_treasury.loan:
-                    red_treasury.loan = 3900
-                    red_treasury.current_money += 3000
-                    treasury_text = font.render(str(round(red_treasury.current_money, 2)), True, (0, 0, 0))
-                    interest_text = font2.render(str(300), True, (0, 0, 0))
-                    screen.blit(treasury_text, treasury_text.get_rect(bottomright=(750, 60)))
+                    screen.blit(income_text, income_text.get_rect(bottomright=(750, 265)))
+                if build_button_rect.collidepoint((pygame.mouse.get_pos())):
+                    build()
 
-    screen.fill(pygame.Color("black"))
-    sprite_group.draw(screen)
-    hero_group.draw(screen)
-    for i in river_tiles:
-        i.update()
-    cursor.update()
-    for i in buildings:
-        for j in i:
-            if j:
-                j.sprite.update()
-    screen.blit(panel, panel.get_rect(bottomright=(500, 650)))
-    screen.blit(treasury_panel, treasury_panel.get_rect(bottomright=(801, 620)))
-    screen.blit(treasury_text, treasury_text.get_rect(bottomright=(750, 60)))
-    screen.blit(income_text, income_text.get_rect(bottomright=(750, 267)))
-    screen.blit(costs_text, costs_text.get_rect(bottomright=(750, 373)))
-    screen.blit(profit_text, profit_text.get_rect(bottomright=(750, 162)))
-    screen.blit(military_text, military_text.get_rect(bottomright=(750, 485)))
-    screen.blit(diplomacy_text, diplomacy_text.get_rect(bottomright=(750, 507)))
-    screen.blit(defence_text, defence_text.get_rect(bottomright=(750, 534)))
-    screen.blit(deficit_text, deficit_text.get_rect(bottomright=(750, 551)))
-    screen.blit(handicrafts_deficit_text, handicrafts_deficit_text.get_rect(bottomright=(690, 564)))
-    screen.blit(rural_deficit_text, rural_deficit_text.get_rect(bottomright=(690, 574)))
-    screen.blit(fish_deficit_text, fish_deficit_text.get_rect(bottomright=(690, 584)))
-    screen.blit(end_turn_button, end_turn_button_rect)
-    screen.blit(build_button, build_button_rect)
-    if turns[1] == 'blue':
-        if blue_treasury.loan == 0:
-            screen.blit(loan_button, loan_button_rect)
-        else:
-            screen.blit(interest_text, interest_text.get_rect(bottomright=(750, 602)))
-    elif turns[1] == 'red':
-        if red_treasury.loan == 0:
-            screen.blit(loan_button, loan_button_rect)
-        else:
-            screen.blit(interest_text, interest_text.get_rect(bottomright=(750, 602)))
-    clock.tick(FPS)
-    pygame.display.flip()
+                if turns[1] == 'blue':
+                    if loan_button_rect.collidepoint((pygame.mouse.get_pos())) and not blue_treasury.loan:
+                        blue_treasury.loan = 3900
+                        blue_treasury.current_money += 3000
+
+                        treasury_text = font.render(str(round(blue_treasury.current_money, 2)), True, (0, 0, 0))
+                        interest_text = font2.render(str(300), True, (0, 0, 0))
+                        screen.blit(treasury_text, treasury_text.get_rect(bottomright=(750, 60)))
+                elif turns[1] == 'red':
+                    if loan_button_rect.collidepoint((pygame.mouse.get_pos())) and not red_treasury.loan:
+                        red_treasury.loan = 3900
+                        red_treasury.current_money += 3000
+                        treasury_text = font.render(str(round(red_treasury.current_money, 2)), True, (0, 0, 0))
+                        interest_text = font2.render(str(300), True, (0, 0, 0))
+                        screen.blit(treasury_text, treasury_text.get_rect(bottomright=(750, 60)))
+
+        screen.fill(pygame.Color("black"))
+        sprite_group.draw(screen)
+        hero_group.draw(screen)
+        for i in river_tiles:
+            i.update()
+        cursor.update()
+        for i in buildings:
+            for j in i:
+                if j:
+                    j.sprite.update()
+        screen.blit(panel, panel.get_rect(bottomright=(500, 650)))
+        screen.blit(treasury_panel, treasury_panel.get_rect(bottomright=(801, 620)))
+        screen.blit(treasury_text, treasury_text.get_rect(bottomright=(750, 60)))
+        screen.blit(income_text, income_text.get_rect(bottomright=(750, 267)))
+        screen.blit(costs_text, costs_text.get_rect(bottomright=(750, 373)))
+        screen.blit(profit_text, profit_text.get_rect(bottomright=(750, 162)))
+        screen.blit(military_text, military_text.get_rect(bottomright=(750, 485)))
+        screen.blit(diplomacy_text, diplomacy_text.get_rect(bottomright=(750, 507)))
+        screen.blit(defence_text, defence_text.get_rect(bottomright=(750, 534)))
+        screen.blit(deficit_text, deficit_text.get_rect(bottomright=(750, 551)))
+        screen.blit(handicrafts_deficit_text, handicrafts_deficit_text.get_rect(bottomright=(690, 564)))
+        screen.blit(rural_deficit_text, rural_deficit_text.get_rect(bottomright=(690, 574)))
+        screen.blit(fish_deficit_text, fish_deficit_text.get_rect(bottomright=(690, 584)))
+        screen.blit(end_turn_button, end_turn_button_rect)
+        screen.blit(build_button, build_button_rect)
+        if turns[1] == 'blue':
+            if blue_treasury.loan == 0:
+                screen.blit(loan_button, loan_button_rect)
+            else:
+                screen.blit(interest_text, interest_text.get_rect(bottomright=(750, 602)))
+        elif turns[1] == 'red':
+            if red_treasury.loan == 0:
+                screen.blit(loan_button, loan_button_rect)
+            else:
+                screen.blit(interest_text, interest_text.get_rect(bottomright=(750, 602)))
+        clock.tick(FPS)
+        pygame.display.flip()
+except Exception:
+    pass
